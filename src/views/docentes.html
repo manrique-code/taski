@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuraciones</title>
+    <meta http-equiv="Content-Security-Policy"
+          content="script-src 'self' 'unsafe-inline';">
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.css">
+</head>
+<body>
+
+    <div class="container mt-3">
+
+        <h1>Tú información</h1>
+        
+        <div class="row">
+
+            <div class="col">
+
+                <p>
+                    <label for="txt-rtn">Número de identidad</label>
+                    <input type="text" class="form-control" id="txt-rtn" placeholder="01XX-19XX-00XXX">
+                </p>
+
+                <div class="form-row mb-3">
+                    <div class="col">
+                        <label for="txt-nombre">Nombre</label>
+                        <input type="text" class="form-control" id="txt-nombre" placeholder="José">
+                    </div>
+                    <div class="col">
+                        <label for="txt-apellido">Apellido</label>
+                        <input type="text" class="form-control" id="txt-apellido" placeholder="Madero"> 
+                    </div>
+                </div>
+
+                <p>
+                    <label for="txt-fecha">Fecha de nacimiento</label>
+                    <input type="date" name="" id="txt-fecha" class="form-control">
+                </p>
+
+                <p>
+                    <label for="cbo-titulo">
+                        Te trataré por:                      
+                    </label>
+                    <select name="" id="cbo-titulo">
+                        <option value="">Tú nombre</option>
+                        <option value="Licenciado">Licenciado</option>
+                        <option value="Ingeniero">Ingeniero</option>
+                        <option value="Doctor">Doctor</option>
+                    </select>
+                </p>
+
+                <hr>
+
+                <div class="custom-control custom-switch mb-3">
+                    <input class="custom-control-input" type="checkbox" id="swc-cuenta">
+                    <label class="custom-control-label" for="swc-cuenta">Asegurar mi información con una cuenta</label>
+                </div>
+
+                <div class="mb-3" id="user" style="display:none">
+                    <div>
+                        <label for="txt-usuario">Usuario</label>
+                        <input type="text" class="form-control" id="txt-usuario">
+                    </div>
+                    <div>                        
+                        <label for="txt-contra">Contraseña</label>
+                        <input type="password" name="" id="txt-contra" class="form-control">
+                    </div>                    
+                </div>
+
+                <p>
+                    <button class="btn btn-primary btn-lg" id="btn-guardar">Registrar</button>
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="../assets/js/scripts.js"></script>
+    <script src="../assets/bootstrap/js/popper.min.js"></script>
+    <script src="../assets/bootstrap/js/bootstrap.js"></script>
+    <script>
+
+    $(function () {
+
+        $('#swc-cuenta').on('click', function(){
+            var $swcCuenta = document.getElementById("swc-cuenta")
+            var $formUser = document.getElementById("user")
+
+            if($swcCuenta.checked){
+                $('#user').fadeIn('slow', function () {
+                    $formUser.style.display = 'block'
+                })
+            } else {
+                $('#user').fadeOut('slow', function () {
+                    $formUser.style.display = 'none'
+                })
+            }
+        })
+
+        $('#btn-guardar').on('click', function () {
+            let $rtn =      $('#txt-rtn')
+            let $nombre =   $('#txt-nombre')
+            let $apellido = $('#txt-apellido')
+            let $fechaNac = $('#txt-fecha')
+            let $titulo =   $('#cbo-titulo')
+            let $usuario =  $('#txt-usuario')
+            let $contra =   $('#txt-contra')
+            var $swcCuenta = document.getElementById("swc-cuenta")
+
+            let query = `insert into Docente(codDocente,
+                                             nombre,
+                                             apellido,
+                                             fechaNacimiento,
+                                             titulo)
+                         values(?, ?, ?, ?)`
+
+            db.transaction(tx => {
+                tx.executeSql(query, [
+                    $rtn.val(),
+                    $nombre.val(),
+                    $apellido.val(),
+                    $fechaNac.val(),
+                    $titulo.val()
+                ])
+                console.log('Docente registrado')
+                //dialog.showMessageBox({message: `${$nombre.val()} ${$apellido.val()}, has sido registrado con éxito`})
+            })
+
+            if($swcCuenta.checked){
+                console.log('Cuenta registrada')
+            }
+        })
+        
+    })
+
+    </script>
+    
+</body>
+</html>

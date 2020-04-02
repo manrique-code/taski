@@ -10,13 +10,68 @@ var mainWindow = null,
     tareaWindow = null,
     configWindow = null
 
-//---Evaluamos para mostrar un icono tanto en el dock o barra de tarea
+var MENU = []
+
+
+//---Evaluamos en que sistema está operando la app
 var iconoDesk
-if(process.platform === 'darwin') {
+if(process.platform === 'win32') {
     iconoDesk = path.join(__dirname, 'assets', 'icon', 'tarea.ico')
 } else {
     iconoDesk = path.join(__dirname, 'assets', 'icon', 'tareas.png')
+
+    MENU.push({
+        label: app.menu,
+        submenu: [
+            {role: 'about'},
+            {role: 'services'},
+            {role: 'separator'},
+            {role: 'quit'}
+        ]
+    })
 }
+
+MENU.push(
+    
+   {
+        label: 'Archivo',
+        submenu: [
+            {
+                label: 'Configuraciones',
+                accelerator: 'CommandOrControl+S'
+            },
+            {type: 'separator'},
+            {
+                label: 'Salir',
+                role: 'close',
+                accelerator: false
+            }
+        ]
+   },
+
+   {
+       label: 'Cuentas',
+       submenu: [
+           {
+               label: 'Gestiona tu cuenta',
+               accelerator: 'Shift+CommandOrControl+G',
+               click() {
+                    docenteWindow = new BrowserWindow({
+                        webPreferences: {
+                            nodeIntegration: true
+                        },
+                        width: 1200,
+                        height: 700
+                    })
+
+                    docenteWindow.loadFile('views/docentes.html')
+                    docenteWindow.setMenu(null)
+                    docenteWindow.webContents.openDevTools()
+               }
+           }
+       ]
+   }
+)
 
 app.on('ready', () => {
 
@@ -31,7 +86,7 @@ app.on('ready', () => {
 
     mainWindow.loadFile('views/main.html')
     mainWindow.maximize()
-    //mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
 
     mainWindow.once('ready-to-show', () => {
         mainWindow.show()
@@ -41,4 +96,6 @@ app.on('ready', () => {
         app.quit()
     })
 
+    var m = Menu.buildFromTemplate(MENU)
+    Menu.setApplicationMenu(m)
 })

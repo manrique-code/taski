@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar tareas</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.css">
+</head>
+<body>
+
+    <div class="container mt-3">
+
+        <h1>Gestión de tareas</h1>
+
+        <div class="row">
+            
+
+            <div class="col-4">
+
+                <p>
+                    <label for="txt-titulo-tarea">Título de la tarea</label>
+                    <input type="text" class="form-control" id="txt-titulo-tarea" placeholder="Investigación sobre...">
+                </p>
+
+                
+                <p>
+                    <label for="num-puntaje">Puntaje</label>
+                    <input type="number" name="" id="num-puntaje" class="form-control" placeholder="20">
+                </p>
+                
+                <p>
+                    <label for="cbo-clase">¿En qué clase desea añadir la tarea?</label>
+                    <select name="" id="cbo-clase" class="form-control">
+
+                    </select>
+                </p>
+
+                <p>
+                    <label for="fecha-asignada">Fecha de asignación</label>
+                    <input type="date" name="" id="fecha-asignada" class="form-control">
+                </p>
+                
+                <p>
+                    <label for="fecha-entrega">Fecha de entrega</label>
+                    <input type="date" name="" id="fecha-entrega" class="form-control">
+                </p>
+                
+                <p>
+                    <label for="cbo-parcial">Parcial</label>
+                    <select name="" id="cbo-parcial" class="form-control">
+                        <option value="1">I Parcial</option>
+                        <option value="2">II Parcial</option>
+                        <option value="3">III Parcial</option>
+                    </select>
+                </p>
+                
+                <p>
+                    <label for="txt-descripcion">Descripción</label>
+                    <textarea name="" id="txt-descripcion" rows="5" class="form-control" placeholder="Opcional"></textarea>
+                </p>
+
+                <p><button class="btn btn-primary btn-lg" id="btn-guardar">Guardar tarea</button></p>
+                
+            </div>
+            <div class="col-8">
+
+                <h4>Listado de tareas</h4>
+
+                <table class="table table-stripped table-hover">
+
+                    <thead>
+                        <tr>
+                            <th class="text-left">#</th>
+                            <th class="text-left">Tarea</th>
+                            <th class="text-left">Puntaje</th>
+                            <th class="text-left">Clase</th>
+                            <th class="text-center">Fecha asignada</th>
+                            <th class="text-center">Fecha Entrega</th>
+                            <th class="text-center">Parcial</th>
+                            <th class="text-center">Finalizó entrega</th>
+                            <th class="text-center">Actualizar</th>
+                            <th class="text-center">Eliminar</th>
+                        </tr>
+                    </thead>
+                    <tbody class="tdata">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+    
+    <script src="../assets/js/scripts.js"></script>
+    <script src="../assets/bootstrap/js/popper.min.js"></script>
+    <script src="../assets/bootstrap/js/bootstrap.js"></script>
+    <script>
+
+    $(function() {
+        var hoy = localStorage.getItem('hoy')
+        var editando = false
+        $('#fecha-asignada').val(hoy)
+        $('#fecha-entrega').val(hoy)
+
+        function llenarComboBoxA(){
+            let query = `select c.idClase,
+                                a.nombreAsignatura,
+                                c.horaEntrada,
+                                c.horaSalida,
+                                c.dias
+                        from Clase c inner join Asignatura a
+                                    on c.idAsignatura = a.idAsignatura
+                        order by a.nombreAsignatura`
+    
+            db.transaction(tx => {
+                    tx.executeSql(query, [], (tx, result) => {
+                    if(result.rows.length > 0) {
+                        let option =  ''
+
+                        for(let i = 0; i < result.rows.length; i++){
+                            let item = result.rows.item(i)
+                            let h = ''
+                            h = (item.horaEntrada === item.horaSalida) ? '': `-${item.horaSalida}`
+                            option += `<option value="${item.idClase}">${item.nombreAsignatura}: ${item.horaEntrada}${h} ${item.dias}</option>`
+                            $('#cbo-clase').append(option)
+                        }
+
+                    }
+                })
+            })
+        }
+
+        llenarComboBoxA()
+
+        function llenarTablaTareas(){
+
+        }
+
+        $('#btn-guardar').on('click', function(){
+            let $tituloTarea = $('#txt-titulo-tarea')
+            let $puntaje =     $('#num-puntaje')
+            let $clase =       $('#cbo-clase') 
+            let $fAsignada =   $('#fecha-asignada')
+            let $fFinalizada = $('#fecha-entrega')
+            let $parcial =     $('#cbo-parcial')
+            let $descr =       $('#txt-descripcion')
+
+            let query = `insert into Tarea(tituloTarea,
+                                           puntaje,
+                                           idClase,
+                                           fechaAsignacion,
+                                           fechaEntrega,
+                                           idParcial,
+                                           descripcionTarea)
+                         values(?, ?, ?, ?, ?, ?, ?)`
+
+            //validaciones
+            if($tituloTarea.val().trim() === '') {
+                    $tituloTarea.focus();
+                    $tituloTarea.css({'border-width':'2px','border-color': 'red'});
+                    setTimeout(() => {
+                            $tituloTarea.fadeIn(1000, function () {
+                            $tituloTarea.css({'border-width':'1px', 
+                            'border-color': 'lightgrey'});
+                            })
+                        }, 1000)
+                    return;
+            }
+
+            if($puntaje.val() === 0) {
+                    $puntaje.focus();
+                    $puntaje.css({'border-width':'2px','border-color': 'red'});
+                    setTimeout(() => {
+                            $puntaje.fadeIn(1000, function () {
+                            $puntaje.css({'border-width':'1px', 
+                            'border-color': 'lightgrey'});
+                            })
+                        }, 1000)
+                    return;
+            }
+
+            if($fFinalizada.val() === hoy) {
+                    $fFinalizada.focus();
+                    $fFinalizada.css({'border-width':'2px','border-color': 'red'});
+                    setTimeout(() => {
+                            $fFinalizada.fadeIn(1000, function () {
+                            $fFinalizada.css({'border-width':'1px', 
+                            'border-color': 'lightgrey'});
+                            })
+                        }, 1000)
+                    return;
+            }
+
+            if(editando) {
+
+                let o = {
+                            message: `Se encuentra editando mi pana`,
+                            title: 'Éxito',
+                            type: 'info'
+                        }
+
+                dialog.showMessageBox(o)
+
+            } else {
+
+                /*console.log({
+                    titulo: $tituloTarea.val(),
+                    puntaje: $puntaje.val(),
+                    clase: $clase.val(),
+                    asignada: $fAsignada.val(),
+                    finalizada: $fFinalizada.val(),
+                    parcial: $parcial.val(),
+                    descrpcion: $descr.val()
+                })*/
+
+                db.transaction(tx => {
+                    tx.executeSql(query, [
+                        $tituloTarea.val(),
+                        $puntaje.val(),
+                        $clase.val(),
+                        $fAsignada.val(),
+                        $fFinalizada.val(),
+                        $parcial.val(),
+                        $descr.val()
+                    ])
+
+                    let o = {
+                            message: `Tarea: ${$tituloTarea.val()}, agregada correctamente`,
+                            title: 'Éxito',
+                            type: 'info'
+                    }
+
+                    dialog.showMessageBox(o)
+                    $tituloTarea.val('')
+                    $puntaje.val(0)
+                    $fFinalizada.val(hoy)
+                    $descr.val('')
+
+                })
+
+            }
+
+        })
+    })
+
+    </script>
+</body>
+</html>

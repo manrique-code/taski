@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clases</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.css">
+</head>
+<body>
+
+    <div class="container mt-3">
+
+        <h1>Gestión de clases</h1>
+
+        <div class="row">
+
+            <div class="col-6">
+                
+                
+                <p>
+                    <label for="cbo-asignatura">Nombre de la clase</label>
+                    <select id="cbo-asignatura" class="form-control">
+                    </select>
+                </p>
+
+                <p>
+                    <label for="txt-time">Hora de entrada</label>
+                    <input type="time" name="" id="txt-time" class="form-control" value="12:00">
+                </p>
+
+                <p>
+                    <label for="num-salida">Hora de salida</label>
+                    <input type="time" name="" id="txt-time-salida" class="form-control" value="12:50">
+                </p>
+
+                <label for="">¿Qué días impartes esta clase?</label>               
+                <form>
+                        <input type="checkbox" name="clases" id="chk-lunes" value="L">
+                        <label for="chk-lunes">Lunes</label>
+                        <br>
+                        <input type="checkbox" name="clases" id="chk-martes" value="Ma">
+                        <label for="chk-martes">Martes</label>
+                        <br>
+                        <input type="checkbox" name="clases" id="chk-miercoles" value="Mi">
+                        <label for="chk-miercoles">Miercoles</label>
+                        <br>
+                        <input type="checkbox" name="clases" id="chk-jueves" value="J">
+                        <label for="chk-jueves">Jueves</label>
+                        <br>
+                        <input type="checkbox" name="clases" id="chk-viernes" value="V">
+                        <label for="chk-viernes">Viernes</label>
+                        <br>
+                        <input type="checkbox" name="clases" id="chk-sabado" value="S">
+                        <label for="chk-sabado">Sabado</label>
+                        <br>
+                        <input type="checkbox" name="clases" id="chk-domingo" value="D">
+                        <label for="chk-domingo" class="mb-3">Domingo</label>
+                </form>
+                
+                <p>
+                    <button class="btn btn-primary btn-lg" id="btn-guardar">Guardar</button>
+                </p>    
+                
+
+            </div>
+            <div class="col-6">
+
+                <h4>Listado de clases</h4>
+
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Nombre</th>
+                            <th class="text-center">Horario</th>
+                            <th class="text-center">Periodo</th>
+                            <th class="text-center">Actualizar</th>
+                            <th class="text-center">Eliminar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="t-data"></tbody>
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="../assets/js/scripts.js"></script>
+    <script src="../assets/bootstrap/js/popper.min.js"></script>
+    <script src="../assets/bootstrap/js/bootstrap.js"></script> 
+    <script>
+
+        $(function (){
+            
+            //llenar el comboBox de las asignaturas
+            var editando = false
+
+            function llenarComboBoxA(){
+                var queryAsignatura = `select *
+                                       from Asignatura
+                                       order by nombreAsignatura`
+    
+                db.transaction(tx => {
+                    tx.executeSql(queryAsignatura, [], (tx, result) => {
+                        let option =  ''
+    
+                        for(let i = 0; i < result.rows.length; i++){
+                            let item = result.rows.item(i)
+                            option += `<option value="${item.idAsignatura}">${item.nombreAsignatura}</option>`
+                        }
+    
+                        $('#cbo-asignatura').append(option)
+                    })
+                })
+            }
+
+            llenarComboBoxA()
+
+            //llenar la tabla de clases
+            function llenarTablaClases() {
+                $('#t-data').empty()
+                var queryAsignatura = `select a.nombreAsignatura,
+                                              substr(c.horaEntrada, 0, 3) as horaEntrada,
+                                              substr(c.horaSalida, 0, 3) as horaSalida,
+                                              c.dias,
+                                              c.idPeriodo
+                                       from Clase c inner join Asignatura a
+                                                     on c.idAsignatura = a.idAsignatura
+                                       order by c.idClase`
+                
+                db.transaction(tx => {
+                    tx.executeSql(queryAsignatura, [], (tx, result) => {
+    
+                        if(result.rows.length > 0) {
+    
+                            for(let i = 0; i < result.rows.length; i++) {
+    
+                                let item = result.rows.item(i)
+                                let h = ''
+
+                                h = (item.horaEntrada === item.horaSalida) ? '': `-${item.horaSalida}`
+    
+                                var tr = `<tr id="fila-${item.idClase}">
+                                            <td>${item.nombreAsignatura}</td>
+                                            <td class="text-center">${item.horaEntrada}${h} ${item.dias}</td>
+                                            <td class="text-center">${item.idPeriodo}</td>
+                                            <td class="text-center"><a class="a-editar" 
+                                                                       data-pk="${item.idClase}" 
+                                                                       data-nasignatura="${item.nombreAsignatura}"
+                                                                       href="#">
+                                                                       <span>&#9997</span></a></td>
+                                            <td class="text-center"><a class="a-eliminar" 
+                                                                     data-pk="${item.idClase}" 
+                                                                     data-nasignatura="${item.nombreAsignatura}"
+                                                                     href="#">&#128465</a></td>
+                                          </tr>`
+                                $('#t-data').append(tr)
+                            }
+    
+                        }
+    
+                    })
+                })                
+            
+            }
+
+            llenarTablaClases()
+
+            $('#btn-guardar').on('click', function(){
+                let $asignatura = $('#cbo-asignatura')
+                let $hEntrada = $('#txt-time')
+                let $hSalida = $('#txt-time-salida')
+                let $dias = []
+
+
+                $.each($("input[name='clases']:checked"), function(){
+                    $dias.push($(this).val())
+                })
+
+                var query = `insert into Clase(horaEntrada, 
+                                               horaSalida,
+                                               dias,
+                                               idAsignatura,
+                                               codDocente,
+                                               idPeriodo)
+                            values(?, ?, ?, ?, ?, ?)`
+
+              /*console.log({
+                  asignatura: $asignatura.val(),
+                  horaEntrada: $hEntrada.val(),
+                  horaSalida: $hSalida.val(),
+                  dias: `${$dias[0]} - ${$dias[$dias.length - 1]}`,
+                  usuario: localStorage.getItem('usuario'),
+                  periodo: localStorage.getItem('periodo')
+              })*/
+
+                db.transaction(tx => {
+                  tx.executeSql(query, [
+                      $hEntrada.val(),
+                      $hSalida.val(),
+                      `${$dias[0]} - ${$dias[$dias.length - 1]}`,
+                      $asignatura.val(),
+                      localStorage.getItem('usuario'),
+                      localStorage.getItem('periodo')
+                    ])
+                })
+
+                let o = {
+                    message: `Clase: ${$asignatura.val()}, guardada con éxito.`,
+                    title: 'Éxito',
+                    type: 'info'
+                }
+
+                dialog.showMessageBox(o)
+              
+              
+            })
+
+        })
+
+    </script>   
+</body>
+</html>

@@ -11,6 +11,7 @@ var mainWindow = null,
     configWindow = null
 
 var MENU = []
+var viewsPath = `file://${__dirname}/views/`
 
 
 //---Evaluamos en que sistema está operando la app
@@ -33,21 +34,78 @@ if(process.platform === 'win32') {
 
 MENU.push(
     
-   {
+    {
         label: 'Archivo',
-        submenu: [
+        submenu:[
             {
-                label: 'Configuraciones',
-                accelerator: 'CommandOrControl+S'
+                label: 'Añadir clases',
+                accelerator: 'CommandOrControl+Shift+C',
+                click() {
+                    claseWindow = new BrowserWindow({
+                        webPreferences:{
+                            nodeIntegration:true
+                        },
+                        width: 1200,
+                        height: 700
+                    })
+ 
+                    claseWindow.loadURL(viewsPath + 'clases.html')
+                    claseWindow.setMenu(null)
+                    claseWindow.webContents.openDevTools()
+                }
             },
+
+            {
+
+                label: 'Añadir tareas',
+                accelerator: 'CommandOrControl+T',
+                click() {
+                    tareaWindow = new BrowserWindow({
+                        webPreferences:{
+                            nodeIntegration: true
+                        },
+                        width: 1200,
+                        height: 700
+                    })
+
+                    tareaWindow.loadURL(viewsPath + 'tareas.html')
+                    tareaWindow.setMenu(null)
+                    tareaWindow.webContents.openDevTools()
+                }
+
+            },
+
             {type: 'separator'},
             {
                 label: 'Salir',
                 role: 'close',
                 accelerator: false
+            }  
+        ]
+    },
+
+   {
+        label: 'Editar',
+        submenu: [
+            {
+                label: 'Configuraciones',
+                accelerator: 'CommandOrControl+S',
+                click() {
+                    configWindow = new BrowserWindow({
+                        webPreferences:{
+                            nodeIntegration: true
+                        },
+                        width: 1200, 
+                        height: 700
+                    })
+
+                    configWindow.loadURL(viewsPath + 'configs.html')
+                    configWindow.webContents.openDevTools()
+                }
             }
         ]
    },
+   
 
    {
        label: 'Cuentas',
@@ -64,7 +122,7 @@ MENU.push(
                         height: 700
                     })
 
-                    docenteWindow.loadFile('views/docentes.html')
+                    docenteWindow.loadURL(viewsPath + 'docentes.html')
                     docenteWindow.setMenu(null)
                     docenteWindow.webContents.openDevTools()
                }
@@ -84,7 +142,7 @@ app.on('ready', () => {
         icon: iconoDesk
     })
 
-    mainWindow.loadFile('views/main.html')
+    mainWindow.loadURL(viewsPath + 'main.html')
     mainWindow.maximize()
     mainWindow.webContents.openDevTools()
 

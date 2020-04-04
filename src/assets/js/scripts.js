@@ -37,7 +37,10 @@ var asignatura = `CREATE TABLE IF NOT EXISTS Asignatura
 var periodo = `CREATE TABLE IF NOT EXISTS Periodo
                (
                    idPeriodo integer primary key autoincrement,
-                   numPeriodo integer not null unique
+                   numPeriodo integer not null unique,
+                   fechaPeriodo date not null,
+                   finPeriodo date not null,
+                   estadoPeriodo integer not null
                )`;
 
 var parcial = `CREATE TABLE IF NOT EXISTS Parcial 
@@ -91,3 +94,15 @@ db.transaction(tx => {
 
     console.log('base de datos creada')
 })
+
+//datos de la app
+var usuario = '0603-2000-00415'
+var nombreUsuario = 'Sergio Rios'
+var p = '1'
+var hoy = new Date().toISOString().split('T')[0]
+
+localStorage.setItem('usuario', usuario)
+localStorage.setItem('nombre', nombreUsuario)
+localStorage.setItem('periodo', p)
+localStorage.setItem('hoy', hoy)
+

@@ -12,70 +12,71 @@
 
     <div class="container mt-3">
 
-        <h1>Tú información</h1>
-        
-        <div class="row">
+    <h1>Configurando tus datos</h1>    
+    <hr>
 
-            <div class="col">
+    <div class="row">
 
-                <p>
-                    <label for="txt-rtn">Número de identidad</label>
-                    <input type="text" class="form-control" id="txt-rtn" placeholder="01XX-19XX-00XXX">
-                </p>
-
-                <div class="form-row mb-3">
-                    <div class="col">
-                        <label for="txt-nombre">Nombre</label>
-                        <input type="text" class="form-control" id="txt-nombre" placeholder="José">
-                    </div>
-                    <div class="col">
-                        <label for="txt-apellido">Apellido</label>
-                        <input type="text" class="form-control" id="txt-apellido" placeholder="Madero"> 
-                    </div>
+        <div class="col">
+    
+            <p>
+                <label for="txt-rtn">Número de identidad</label>
+                <input type="text" class="form-control" id="txt-rtn" placeholder="01XX-19XX-00XXX">
+            </p>
+    
+            <div class="form-row mb-3">
+                <div class="col">
+                    <label for="txt-nombre">Nombre</label>
+                    <input type="text" class="form-control" id="txt-nombre" placeholder="José">
                 </div>
-
-                <p>
-                    <label for="txt-fecha">Fecha de nacimiento</label>
-                    <input type="date" name="" id="txt-fecha" class="form-control">
-                </p>
-
-                <p>
-                    <label for="cbo-titulo">
-                        Te trataré por:                      
-                    </label>
-                    <select name="" id="cbo-titulo">
-                        <option value="">Tú nombre</option>
-                        <option value="Licenciado">Licenciado</option>
-                        <option value="Ingeniero">Ingeniero</option>
-                        <option value="Doctor">Doctor</option>
-                    </select>
-                </p>
-
-                <hr>
-
-                <div class="custom-control custom-switch mb-3">
-                    <input class="custom-control-input" type="checkbox" id="swc-cuenta">
-                    <label class="custom-control-label" for="swc-cuenta">Asegurar mi información con una cuenta</label>
+                <div class="col">
+                    <label for="txt-apellido">Apellido</label>
+                    <input type="text" class="form-control" id="txt-apellido" placeholder="Madero"> 
                 </div>
-
-                <div class="mb-3" id="user" style="display:none">
-                    <div>
-                        <label for="txt-usuario">Usuario</label>
-                        <input type="text" class="form-control" id="txt-usuario">
-                    </div>
-                    <div>                        
-                        <label for="txt-contra">Contraseña</label>
-                        <input type="password" name="" id="txt-contra" class="form-control">
-                    </div>                    
-                </div>
-
-                <p>
-                    <button class="btn btn-primary btn-lg" id="btn-guardar">Registrar</button>
-                </p>
-
             </div>
-
+    
+            <p>
+                <label for="txt-fecha">Fecha de nacimiento</label>
+                <input type="date" name="" id="txt-fecha" class="form-control">
+            </p>
+    
+            <p>
+                <label for="cbo-titulo">
+                    Te trataré por:                      
+                </label>
+                <select name="" id="cbo-titulo">
+                    <option value="">Tú nombre</option>
+                    <option value="Licenciado">Licenciado</option>
+                    <option value="Ingeniero">Ingeniero</option>
+                    <option value="Doctor">Doctor</option>
+                </select>
+            </p>
+    
+            <hr>
+    
+            <div class="custom-control custom-switch mb-3">
+                <input class="custom-control-input" type="checkbox" id="swc-cuenta">
+                <label class="custom-control-label" for="swc-cuenta">Asegurar mi información con una cuenta</label>
+            </div>
+    
+            <div class="mb-3" id="user" style="display:none">
+                <div>
+                    <label for="txt-usuario">Usuario</label>
+                    <input type="text" class="form-control" id="txt-usuario">
+                </div>
+                <div>                        
+                    <label for="txt-contra">Contraseña</label>
+                    <input type="password" name="" id="txt-contra" class="form-control">
+                </div>                    
+            </div>
+    
+            <p>
+                <button class="btn btn-primary btn-lg" id="btn-guardar">Registrar</button>
+            </p>
+    
         </div>
+    
+    </div>
 
     </div>
 
@@ -86,6 +87,7 @@
 
     $(function () {
 
+        //----------------------------------- docentes ---------------------------------
         $('#swc-cuenta').on('click', function(){
             var $swcCuenta = document.getElementById("swc-cuenta")
             var $formUser = document.getElementById("user")
@@ -109,14 +111,20 @@
             let $titulo =   $('#cbo-titulo')
             let $usuario =  $('#txt-usuario')
             let $contra =   $('#txt-contra')
-            var $swcCuenta = document.getElementById("swc-cuenta")
+            let $swcCuenta = document.getElementById("swc-cuenta")
 
             let query = `insert into Docente(codDocente,
                                              nombre,
                                              apellido,
                                              fechaNacimiento,
                                              titulo)
-                         values(?, ?, ?, ?)`
+                         values(?, ?, ?, ?, ?)`
+
+            let query2 = `insert into Cuenta(nombreUsuario,
+                                             password,
+                                             codDocente,
+                                             estadoCuenta)
+                          values(?, ?, ?, 1)`
 
             db.transaction(tx => {
                 tx.executeSql(query, [
@@ -127,13 +135,23 @@
                     $titulo.val()
                 ])
                 console.log('Docente registrado')
-                //dialog.showMessageBox({message: `${$nombre.val()} ${$apellido.val()}, has sido registrado con éxito`})
+                dialog.showMessageBox({message: `${$nombre.val()} ${$apellido.val()}, has sido registrado con éxito`})
+
+                if($swcCuenta.checked){
+                    //$usuario.val(`${$nombre.val().toLowerCase().substring(0, 1)}${$apellido.val().toLowerCase()}`)                
+
+                        tx.executeSql(query2, [
+                            $usuario.val(),
+                            $contra.val(),
+                            $rtn.val()
+                        ])
+    
+                    console.log('Usuario igualmente registrado jjsja')
+                }
             })
 
-            if($swcCuenta.checked){
-                console.log('Cuenta registrada')
-            }
         })
+        //--------------------------------------docentes-------------------------------------------
         
     })
 
